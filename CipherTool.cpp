@@ -12,6 +12,9 @@ CipherTool::CipherTool() {
 
     // initialize shift cipher specific variables
     shiftSize = 0;
+
+    // initialize mono-alphabetic cipher specific variables
+    monoKey = "";
 }
 
 void CipherTool::runCipher() {
@@ -22,7 +25,9 @@ void CipherTool::runCipher() {
 
         // switch to run cipher func based on cipherType
         switch (cipherType) {
-            case (cipher_SHIFT): { runShiftCipher(); break;}
+            case (cipher_SHIFT): { runShiftCipher(); break; }
+            case (cipher_MONO): { runMonoCipher(); break; }
+            case (cipher_UNKNOWN):
             default: {
                 // should never get here bc cipherType is checked when read in
                 printf("Oops, looks like something went wrong. Exiting the Cipher Tool now.\n\n");
@@ -54,10 +59,10 @@ void CipherTool::determineCipherType() {
         std::system("clear");
         printf("****************************************\n");
         if (!firstRun) {
-            printf("Selection invalid. Please enter a number from the list below.\n");
+            printf("Selection invalid. Please enter a number from the list below.\n\n");
         }
         printf("1) Shift Cipher\n");
-        printf("2) Coming Soon!\n");
+        printf("2) Monoalphabetic Substitution\n");
         printf("999) Quit\n");
         printf("Enter your selection for cipher type: ");
 
@@ -66,7 +71,7 @@ void CipherTool::determineCipherType() {
         int val = atoi(input.c_str());
 
         firstRun = false;
-        if (val > cipher_UNKNOWN && val <= cipher_SHIFT) {
+        if (val > cipher_UNKNOWN && val <= cipher_MONO) {
             cipherType = val;
             validInput = true;
         }
@@ -84,7 +89,7 @@ void CipherTool::determineEncodeOrDecode() {
         std::system("clear");
         printf("****************************************\n");
         if (!firstRun) {
-            printf("Selection invalid. Please enter a number from the list below.\n");
+            printf("Selection invalid. Please enter a number from the list below.\n\n");
         }
         printf("1) Encode\n");
         printf("2) Decode\n");
@@ -133,7 +138,7 @@ void CipherTool::runShiftCipher() {
         std::system("clear");
         printf("****************************************\n");
         if (!firstRun) {
-            printf("Entry invalid. Please enter a number within the prescribed bounds.\n");
+            printf("Entry invalid. Please enter a number within the prescribed bounds.\n\n");
         }
         printf("Enter the shift size (-26 to +26): ");
 
@@ -210,6 +215,82 @@ void CipherTool::runShiftCipher() {
                 }
                 else if (c > 'Z'){
                     c = c - 'Z' + 'A' - 1;
+                }
+            }
+            plainText.push_back(c);
+        }
+        std::cout << "Ciphertext: " + cipherText << std::endl;
+        std::cout << "Plaintext:  " + plainText << std::endl;
+    }
+    else {
+        // encodeOrDecode should always be set, but just in case
+        printf("Oops, looks like something went wrong. Exiting the Cipher Tool now.\n\n");
+        exit(0);
+    }
+}
+
+void CipherTool::runMonoCipher() {
+    validInput = false;
+    firstRun = true;
+    while (!validInput) {
+        std::system("clear");
+        printf("****************************************\n");
+        if (!firstRun) {
+            printf("Entry invalid. Please enter exactly 26 letters with no spaces\n\n");
+        }
+        printf("Enter the mono-alphabetic cipher key alphabet with no spaces.\n");
+        printf("Meaning, enter exactly 26 letters, in order, of what 'a' maps to,\n");
+        printf("what 'b' maps to, all the way up to what 'z' maps to (a-z & A-Z): ");
+
+        std::getline(std::cin, monoKey);
+
+        firstRun = false;
+        // check for valid key input
+        // set to true, and if we find an issue change it to false and break
+        validInput = true;
+        if (monoKey.length() == 26) {
+            for (int i = 0; i < monoKey.length(); i++) {
+                signed char c = monoKey[i];
+                if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) {
+                    validInput = false;
+                    break;
+                }
+            }
+        } else {
+            validInput = false;
+        }
+    }
+
+    std::system("clear");
+    printf("****************************************\n");
+    if (encodeOrDecode == Encode) {
+        for (int i = 0; i < plainText.length(); i++) {
+            signed char c = plainText[i];
+            // operation if char is lowercase
+            if (c >= 'a' && c <= 'z') {
+                c = monoKey[c - 'a'];
+            }
+            // operation if char is uppercase
+            else if (c >= 'A' && c <= 'Z') {
+                c = monoKey[c - 'A'];
+            }
+            cipherText.push_back(c);
+        }
+        std::cout << "Plaintext:  " + plainText << std::endl;
+        std::cout << "Ciphertext: " + cipherText << std::endl;
+    }
+    else if (encodeOrDecode == Decode) {
+        for (int i = 0; i < cipherText.length(); i++) {
+            // make all lowercase for ease of decoding
+            // and so two keys aren't needed (one for upper, one for lower)
+            signed char c = tolower(cipherText[i]);
+            // for each letter, run through key and decipher based on index where letter is found
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                for (int j = 0; j < monoKey.length(); j++) {
+                    if (c == tolower(monoKey[j])) {
+                        c = 'a' + j;
+                        break;
+                    }
                 }
             }
             plainText.push_back(c);
