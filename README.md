@@ -1,7 +1,7 @@
 # CipherTool
 Command line cipher tool for encoding and decoding text with different types of ciphers.
 
-Built using JetBrains CLion 2021 IDE.
+Built using JetBrains CLion 2021 IDE on a Mac.
 
 Build and run CipherTool, and follow command line prompts to use.
 
